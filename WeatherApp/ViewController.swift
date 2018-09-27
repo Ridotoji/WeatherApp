@@ -36,20 +36,11 @@ class ViewController: UIViewController, CLLocationManagerDelegate, UISearchBarDe
     @IBOutlet weak var tableView: UITableView!
     @IBOutlet weak var collectionView: UICollectionView!
     
-    
-    //    Alamofire.request("http://api.openweathermap.org/data/2.5/weather?q=\(searchString)&appid=\(apiKey)&units=metric").responseJSON{
-    //    response in
-    //    self.activityIndicator.stopAnimating()
-    //    if let responseStr = response.result.value{
-    //    let jsonResponse = JSON(responseStr)
-    //    let jsonMessage = jsonResponse["message"].stringValue
-    //    }
+
     
     //API secret keys
     let darkSkyApiKey = "c56c4ffc63b212daf14f276378b18b97"
     let openWeatherApiKey = "b9d7853fa6eb9dad94d386b7999d4444"
-    //var lat = 11.344533
-    //var lon = 104.33322
     
     var activityIndicator: NVActivityIndicatorView!
     let locationManager = CLLocationManager()
@@ -82,14 +73,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate, UISearchBarDe
         
         activityIndicator.startAnimating()
         
-        //        if(CLLocationManager.locationServicesEnabled()){
-        //            locationManager.delegate = self
-        //            locationManager.desiredAccuracy = kCLLocationAccuracyBest
-        //            locationManager.startUpdatingLocation()
-        //
-        //        }
-        
-        
         
         
     }
@@ -105,9 +88,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, UISearchBarDe
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         let location = locations[0]
-        //let currentLat = location.coordinate.latitude
-        //let currentLon = location.coordinate.longitude
-        // Alamofire.request("http://api.openweathermap.org/data/2.5/weather?lat=\(lat)&lon=\(lon)&appid=\(apiKey)&units=metric").responseJSON{
+
         
         Alamofire.request("http://api.openweathermap.org/data/2.5/weather?q=\(modifiedString)&appid=\(openWeatherApiKey)&units=metric").responseJSON{
             response in
@@ -135,7 +116,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate, UISearchBarDe
                             
                             self.temperatureLabel.text = ("\(self.cDegreeConverter(fDegreeInput: jsonCurrentData["temperature"].stringValue))" + "°")
                             
-                            
                             self.humidityLabel.text = "Humidity: " + "\(Int((jsonCurrentData["humidity"].doubleValue)*100))"  + "%"
                             
                             self.uvIndexLabel.text = "UV Index: " + jsonCurrentData["uvIndex"].stringValue
@@ -147,6 +127,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, UISearchBarDe
                             
                             let closestTime = jsonHourlyData["data"][0]["time"].stringValue
                             
+                            //taking first 12 character from date time for comparing
                             let modifiedClosestTime = self.dateTimeConverter(dateTimeString: closestTime).prefix(12)
                             
                             
@@ -155,22 +136,24 @@ class ViewController: UIViewController, CLLocationManagerDelegate, UISearchBarDe
                             while true {
                                 let jsonHourlyTime = jsonHourlyData["data"][i]["time"].stringValue
                                 
-                                let modifiedHourlyTime = self.dateTimeConverter(dateTimeString: jsonHourlyTime).prefix(12) //for comparing condition
+                                //taking first 12 character from date time for comparing
+                                let modifiedHourlyTime = self.dateTimeConverter(dateTimeString: jsonHourlyTime).prefix(12)
                                 
+                                //break the loop if time goes to next day
                                 if modifiedClosestTime != modifiedHourlyTime {
                                     break
                                 }
                                 
+                                //getting hourly data then send to UI
                                 let convertedHourlyTime = self.dateTimeConverter(dateTimeString: jsonHourlyTime)
-                                // let hourlyCondition = jsonHourlyData["data"][i]["summary"].stringValue
-                                //let hourlyTemperature = jsonHourlyData["data"][i]["temperature"].stringValue
                                 let hourlyTemperature = self.cDegreeConverter(fDegreeInput: jsonHourlyData["data"][i]["temperature"].stringValue)
-                                // self.list.append(hourlyData)
                                 self.HourlyDataList.append(String(convertedHourlyTime.suffix(8)))
                                 self.HourlyTempList.append(String(hourlyTemperature) + "°C")
-                                //print(self.HourlyTempList)
                                 self.insertNewCollection()
                                 print(self.HourlyDataList)
+                                //////
+                                
+                                //increasement to get data from next element of the array
                                 i = i + 1
                                 
                                 
@@ -183,11 +166,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, UISearchBarDe
                                 let dailyDateTime = jsonDailyData["data"][i]["time"].stringValue
                                 let convertedDailyDateTime = self.dateTimeConverter(dateTimeString: dailyDateTime).prefix(6)
                                 
-                                
                                 let dailyMaxTemperature = self.cDegreeConverter(fDegreeInput: jsonDailyData["data"][i]["temperatureMax"].stringValue)
                                 let dailyMinTemperature = self.cDegreeConverter(fDegreeInput: jsonDailyData["data"][i]["temperatureMin"].stringValue)
-                                
-                                //let dailyIcon = jsonDailyData["data"][i]["icon"].stringValue
                                 
                                 self.DailyDataList.append(String(convertedDailyDateTime) + "                                      "  + String(dailyMaxTemperature) + "    " + String(dailyMinTemperature))
                                 self.tableView.reloadData()
@@ -213,10 +193,9 @@ class ViewController: UIViewController, CLLocationManagerDelegate, UISearchBarDe
         DailyDataList.removeAll()
         tableView.reloadData()
         collectionView.reloadData()
-        //aString = "This is my string"
         modifiedString = searchString.replacingOccurrences(of: " ", with: "%20")
         
-        //self.locationLabel.text = searchBar.text
+
         
         if(CLLocationManager.locationServicesEnabled()){
             locationManager.delegate = self
@@ -224,7 +203,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate, UISearchBarDe
             locationManager.startUpdatingLocation()
             
         }
-        //insertNewRow()
     }
     
     //Alert for reuse
@@ -245,8 +223,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate, UISearchBarDe
         
         cell.textLabel?.text = DailyDataList[indexPath.row]
         cell.textLabel?.textColor = .white
-        //cell.layer.backgroundColor = UIColor.clear.cgColor
-        //tableView.backgroundColor = .clear
         cell.backgroundColor = .clear
         return(cell)
     }
@@ -270,15 +246,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate, UISearchBarDe
         let indexPath = IndexPath(item: HourlyDataList.count - 1, section: 0)
         
         collectionView.insertItems(at: [indexPath])
-    }
-    
-    func insertNewRow() {
-        let indexPath = IndexPath(row: DailyDataList.count + 1, section: 0)
-        
-        tableView.beginUpdates()
-        tableView.insertRows(at: [indexPath], with: .automatic)
-        tableView.endUpdates()
-        
     }
     
     //Convert UNIX number time to user friendly time
